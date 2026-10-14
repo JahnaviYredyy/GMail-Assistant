@@ -11,11 +11,13 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
-# MCP SERVER
+# CREATES  MCP SERVER
 
 server = MCPServer("Gmail Agent Server")
+
 # GMAIL SETTINGS
-SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+
+SCOPES = [ "https://www.googleapis.com/auth/gmail.readonly"]
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TOKEN_PATH = os.path.join(BASE_DIR, "token.json")
 CREDENTIALS_PATH = os.path.join(BASE_DIR, "credentials.json")
@@ -29,14 +31,12 @@ GENERATED_FILES_DIR = Path(BASE_DIR) / "generated_files"
 def get_gmail_service():
 
     print("Connecting to Gmail...", file=sys.stderr, flush=True)
-
     creds = None
-
     if os.path.exists(TOKEN_PATH):
-
         print("Found token.json", file=sys.stderr, flush=True)
-
-        creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
+        creds = Credentials.from_authorized_user_file(
+            TOKEN_PATH, SCOPES
+        )
 
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
@@ -56,9 +56,11 @@ def get_gmail_service():
                 file=sys.stderr,
                 flush=True
             )
+
             creds = flow.run_local_server(port=0)
         with open(TOKEN_PATH, "w", encoding="utf-8") as token:
             token.write(creds.to_json())
+
         print("New token.json created!",
             file=sys.stderr,
             flush=True
@@ -111,118 +113,67 @@ def get_todays_emails() -> str:
 
     try:
 
-        print(
-
-            "Gmail tool: get_todays_emails()",
-
+        print( "Gmail tool: get_todays_emails()",
             file=sys.stderr,
-
             flush=True
-
         )
 
         service = get_gmail_service()
-
         today = datetime.now().strftime("%Y/%m/%d")
-
         query = f"after:{today}"
-
-        print(
-
-            f"Gmail query: {query}",
-
+        print(f"Gmail query: {query}",
             file=sys.stderr,
-
             flush=True
-
         )
 
         results = service.users().messages().list(
-
             userId="me",
-
             q=query
-
         ).execute()
 
         messages = results.get("messages", [])
 
-        print(
-
-            f"Emails found: {len(messages)}",
-
+        print(f"Emails found: {len(messages)}",
             file=sys.stderr,
-
             flush=True
-
         )
 
         if not messages:
-
             return "No emails received today."
-
         email_list = []
-
         for message in messages:
-
             email = service.users().messages().get(
-
                 userId="me",
-
                 id=message["id"],
-
                 format="full"
-
             ).execute()
-
             payload = email.get("payload", {})
-
             headers = payload.get("headers", [])
-
             sender = ""
-
             subject = ""
 
             for header in headers:
-
                 name = header["name"].lower()
-
                 if name == "from":
-
                     sender = header["value"]
-
                 elif name == "subject":
-
                     subject = header["value"]
-
             body = extract_body(payload)[:3000]
-
             email_list.append(
-
                 f"Email ID: {message['id']}\n"
-
                 f"From: {sender}\n"
-
                 f"Subject: {subject}\n"
-
                 f"Body:\n{body}"
-
             )
 
         return "\n\n--------------------\n\n".join(email_list)
 
     except Exception as e:
 
-        print(
-
-            f"ERROR: {type(e).__name__}: {e}",
-
+        print(f"ERROR: {type(e).__name__}: {e}",
             file=sys.stderr,
-
             flush=True
-
         )
-
         return f"Error: {type(e).__name__}: {e}"
 
 # TOOL 2: GET UNREAD EMAILS
@@ -235,106 +186,55 @@ def get_unread_emails() -> str:
 
     try:
 
-        print(
-
-            "Gmail tool: get_unread_emails()",
-
+        print("Gmail tool: get_unread_emails()",
             file=sys.stderr,
-
             flush=True
-
         )
 
         service = get_gmail_service()
-
         messages = []
-
         page_token = None
-
         while True:
-
             results = service.users().messages().list(
-
                 userId="me",
-
                 q="is:unread",
-
                 maxResults=100,
-
                 pageToken=page_token
-
             ).execute()
-
             messages.extend(results.get("messages", []))
-
             page_token = results.get("nextPageToken")
-
             if not page_token:
-
                 break
-
         count = len(messages)
-
-        print(
-
-            f"Total unread emails: {count}",
-
+        print(f"Total unread emails: {count}",
             file=sys.stderr,
-
             flush=True
-
         )
-
         if count == 0:
-
             return "You have 0 unread emails."
-
         email_list = []
-
         for message in messages[:10]:
-
             email = service.users().messages().get(
-
                 userId="me",
-
                 id=message["id"],
-
                 format="full"
-
             ).execute()
-
             payload = email.get("payload", {})
-
             headers = payload.get("headers", [])
-
             sender = ""
-
             subject = ""
-
             for header in headers:
-
                 name = header["name"].lower()
-
                 if name == "from":
-
                     sender = header["value"]
-
                 elif name == "subject":
-
                     subject = header["value"]
-
             body = extract_body(payload)[:1500]
-
             email_list.append(
-
                 f"Email ID: {message['id']}\n"
-
                 f"From: {sender}\n"
-
                 f"Subject: {subject}\n"
-
                 f"Body:\n{body}"
-
             )
 
         result = (
@@ -818,9 +718,14 @@ def create_word_file(
 
 if __name__ == "__main__":
 
-    print("Starting Gmail MCP server...",
-          file=sys.stderr,
-          flush=True
-         )
+    print(
+
+        "Starting Gmail MCP server...",
+
+        file=sys.stderr,
+
+        flush=True
+
+    )
 
     server.run()
