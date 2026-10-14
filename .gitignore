@@ -1,0 +1,25 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Google OAuth credentials and user tokens
+credentials.json
+token.json
+token*.json
+client_secret*.json
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Node / React
+node_modules/
+dist/
+
+# Local databases and generated files
+*.sqlite3
+*.db
